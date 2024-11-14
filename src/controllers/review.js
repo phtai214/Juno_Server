@@ -23,15 +23,19 @@ export const fetchAllReviews = async (req, res) => {
     }
 };
 
-// Get Review by ID
 export const fetchReviewById = async (req, res) => {
     try {
         const reviewId = req.params.id;
         const review = await services.getReviewById(reviewId);
+
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
         return res.status(200).json(review);
     } catch (error) {
         console.error('Error in fetchReviewById controller:', error);
-        return res.status(404).json({ error: 'Review not found' });
+        return res.status(500).json({ error: 'Failed to fetch review' });
     }
 };
 
@@ -39,6 +43,11 @@ export const getReviewsByProductId = async (req, res) => {
     try {
         const { productId } = req.params;
         const reviews = await services.getReviewByProductId(productId);
+
+        if (reviews.length === 0) {
+            return res.status(404).json({ message: 'No reviews found for this product ID' });
+        }
+
         return res.status(200).json(reviews);
     } catch (error) {
         console.error('Error in getReviewsByProductId controller:', error);

@@ -19,6 +19,14 @@ module.exports = (sequelize) => {
         phone_number: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        img: {
+            type: DataTypes.STRING, // Hoặc DataTypes.TEXT nếu bạn muốn lưu trữ URL dài
+            allowNull: true // Có thể để null nếu không bắt buộc
+        },
+        url_map: {
+            type: DataTypes.TEXT, // Hoặc DataTypes.TEXT nếu cần
+            allowNull: true // Có thể để null nếu không bắt buộc
         }
     }, {
         sequelize,

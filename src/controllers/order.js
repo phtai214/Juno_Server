@@ -42,6 +42,12 @@ export const fetchOrdersByUserId = async (req, res) => {
 
     try {
         const orders = await services.getOrderByUserId(userId);
+
+        // Kiểm tra nếu không có đơn hàng
+        if (orders.length === 0) {
+            return res.status(404).json({ message: 'Chưa có đơn hàng nào cho người dùng này.' });
+        }
+
         res.status(200).json(orders); // Trả về danh sách đơn hàng
     } catch (error) {
         res.status(500).json({ message: error.message }); // Trả về lỗi nếu có

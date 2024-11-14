@@ -27,7 +27,7 @@ module.exports = (sequelize) => {
             defaultValue: 'pending' // Giá trị mặc định
         },
         payment_method: {
-            type: DataTypes.ENUM('cod', 'momo'), // Các phương thức thanh toán
+            type: DataTypes.ENUM('cod', 'paypal'), // Các phương thức thanh toán
             allowNull: false // Bắt buộc phải có
         },
         shipping_address: {

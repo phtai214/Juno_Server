@@ -38,12 +38,15 @@ export const fetchCartByUserId = async (req, res) => {
     try {
         const userId = req.params.userId; // Lấy userId từ params
         const cart = await services.getCartByUserId(userId);
+
+        // Nếu tìm thấy cart, trả về nó
         return res.status(200).json(cart);
     } catch (error) {
         console.error('Error in fetchCartByUserId controller:', error);
-        return res.status(404).json({ error: 'Cart not found for this user' });
+        // Trả về thông báo nếu không tìm thấy cart
+        return res.status(200).json({ message: 'Cart not found for this user' });
     }
-};
+}
 // Update a Cart
 export const modifyCart = async (req, res) => {
     try {

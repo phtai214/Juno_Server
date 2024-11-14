@@ -3,9 +3,27 @@ import * as services from "../services";
 // Create a new shop
 export const createNewShop = async (req, res) => {
     try {
-        const shopData = req.body;
+        // Lấy dữ liệu từ request body
+        const { name, location, phone_number, url_map } = req.body;
+
+        // Lấy file ảnh từ request
+        const img = req.file ? req.file.path : null; // Giả sử file ảnh được lưu trong req.file.path
+
+        // Tạo đối tượng shopData
+        const shopData = {
+            name,
+            location,
+            phone_number,
+            img,
+            url_map
+        };
+
         const newShop = await services.createShop(shopData);
-        return res.status(201).json(newShop);
+        return res.status(201).json({
+            err: 0,
+            mes: 'Shop created successfully.',
+            shop: newShop,
+        });
     } catch (error) {
         console.error('Error in createNewShop controller:', error);
         return res.status(500).json({ error: 'Failed to create shop' });
@@ -39,7 +57,16 @@ export const fetchShopById = async (req, res) => {
 export const modifyShop = async (req, res) => {
     try {
         const shopId = req.params.id;
-        const updatedData = req.body;
+
+        // Lấy dữ liệu từ req.body và req.file (nếu có tệp ảnh)
+        const updatedData = {
+            name: req.body.name,
+            location: req.body.location,
+            phone_number: req.body.phone_number,
+            img: req.file ? req.file.path : null, // Giả sử bạn đã cấu hình multer để lưu tệp
+            url_map: req.body.url_map,
+        };
+
         const updatedShop = await services.updateShop(shopId, updatedData);
         return res.status(200).json(updatedShop);
     } catch (error) {

@@ -7,12 +7,12 @@ const router = Router();
 
 router.use(express.json());
 
-router.post('/transactions', controllers.createNewTransaction);
-router.get('/transactions', controllers.fetchAllTransactions);
-router.get('/transactions/:id', controllers.fetchTransactionById);
-router.put('/transactions/:id', controllers.modifyTransaction);
-router.delete('/transactions/:id', controllers.removeTransaction);
-router.post('/payment/initiate', controllers.initiatePayment);
+router.post('/', controllers.createNewTransaction);
+router.get('/', controllers.fetchAllTransactions);
+router.get('/:id', controllers.fetchTransactionByOrderId);
+router.put('/:id', controllers.modifyTransaction);
+router.delete('/:id', controllers.removeTransaction);
+router.post('/create-order', controllers.createOrderController);
 
 
 

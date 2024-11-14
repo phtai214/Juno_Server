@@ -1,4 +1,15 @@
 import * as services from "../services";
+export const createOrderController = async (req, res) => {
+    const totalAmount = req.body.totalAmount;
+    try {
+        const orderId = await services.createPaypalOrder(totalAmount);
+        console.log("check controller>>>", orderId)
+        res.status(200).json({ message: orderId });
+    } catch (error) {
+        console.error("Error creating PayPal order:", error);
+        res.status(500).json({ error: "Failed to create PayPal order" });
+    }
+};
 export const initiatePayment = async (req, res) => {
     const { amount, orderInfo, redirectUrl, ipnUrl } = req.body;
 
@@ -33,14 +44,14 @@ export const fetchAllTransactions = async (req, res) => {
 };
 
 // Get transaction by ID
-export const fetchTransactionById = async (req, res) => {
+export const fetchTransactionByOrderId = async (req, res) => {
     try {
-        const transactionId = req.params.id;
-        const transaction = await services.getTransactionById(transactionId);
+        const orderId = req.params.id; // Lấy orderId từ tham số URL
+        const transaction = await services.getTransactionByOrderId(orderId); // Gọi hàm dịch vụ tương ứng
         return res.status(200).json(transaction);
     } catch (error) {
-        console.error('Error in fetchTransactionById controller:', error);
-        return res.status(404).json({ error: 'Transaction not found' });
+        console.error('Error in fetchTransactionByOrderId controller:', error);
+        return res.status(404).json({ error: 'Transaction not found for this order' });
     }
 };
 

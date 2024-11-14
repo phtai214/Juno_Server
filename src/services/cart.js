@@ -47,13 +47,12 @@ export const getCartByUserId = async (userId) => {
             where: { user_id: userId },
             include: ['user', 'cartItems'] // Include related models User and CartItems
         });
-        if (!cart) {
-            throw new Error('Cart not found for this user');
-        }
-        return cart;
+
+        // Nếu không tìm thấy cart, trả về null thay vì ném lỗi
+        return cart; // Nếu cart không tồn tại, sẽ trả về null
     } catch (error) {
         console.error('Error fetching cart by user ID:', error);
-        throw error;
+        throw error; // Ném lỗi nếu có lỗi khác xảy ra
     }
 };
 

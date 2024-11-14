@@ -1,7 +1,4 @@
 import * as services from '../services';
-const cloudinary = require('cloudinary').v2;
-
-
 export const creatUser = async (req, res) => {
     const { name, email, password } = req.body
     try {
@@ -11,20 +8,32 @@ export const creatUser = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+export const creatUserEmployee = async (req, res) => {
+    const { name, email, password, position, status, role, permissions } = req.body; // Thêm position và status
+    try {
+        const result = await services.createNewUserEmployee({ name, email, password, position, status, role, permissions }); // Truyền position và status
+        res.json(result);
+    } catch (error) {
+        console.error('Error creating user:', error); // Ghi lại lỗi nếu có
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
 
 export const getAllUser = async (req, res) => {
+    const page = parseInt(req.query.page) || 1; // Lấy trang từ query, mặc định là 1
+    const limit = parseInt(req.query.limit) || 10; // Lấy limit từ query, mặc định là 10
+
     try {
-        const users = await services.getAllUser();
-        res.json(users)
+        const users = await services.getAllUser(page, limit); // Gọi hàm dịch vụ với các tham số phân trang
+        res.json(users); // Trả về dữ liệu người dùng
     } catch (error) {
-        console.log('check err >>>', error)
+        console.log('check err >>>', error);
         return res.status(500).json({
             error: true,
             message: 'Error in server',
-
-        })
+        });
     }
-}
+};
 
 export const getUserById = async (req, res) => {
     const userId = req.params.id;
@@ -41,7 +50,6 @@ export const updateUser = async (req, res) => {
     const userId = req.params.id;
     const newData = req.body;
     const fileData = req.file; // Lấy dữ liệu file ảnh từ request
-
     try {
         if (fileData) {
             // Nếu có ảnh mới được tải lên
@@ -101,13 +109,3 @@ export const fetchPermissions = async (req, res) => {
     }
 };
 
-// Xóa một nhân viên
-export const deleteEmployee = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const response = await services.deleteEmployee(id);
-        res.status(200).json(response);
-    } catch (error) {
-        res.status(500).json({ message: 'Lỗi khi xóa người dùng', error: error.message });
-    }
-}

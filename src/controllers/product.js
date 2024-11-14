@@ -4,7 +4,7 @@ const cloudinary = require('cloudinary').v2;
 
 export const handleCreateNewProduct = async (req, res) => {
     const fileData = req.files;
-    const { name, description, price, quantity, category, variations } = req.body; // Lấy các trường khác
+    const { name, description, price, quantity, category, variations, tag } = req.body; // Lấy các trường khác
     const { product_code, design, material, colors, origin, vat_included } = req.body.productDetails;
 
     // Lấy hình ảnh chính và bổ sung
@@ -19,6 +19,7 @@ export const handleCreateNewProduct = async (req, res) => {
             price: Joi.number().required(),
             quantity: Joi.number().required(),
             category: Joi.string().required(),
+            tag: Joi.array().items(Joi.string()).required(),
             variations: Joi.array().items(
                 Joi.object({
                     size: Joi.string().required(),
@@ -35,7 +36,7 @@ export const handleCreateNewProduct = async (req, res) => {
             vat_included: Joi.boolean().required()
         });
 
-        const { error } = productSchema.validate({ name, description, price, quantity, category, variations, design, material, colors, origin, vat_included, product_code });
+        const { error } = productSchema.validate({ name, description, price, quantity, category, variations, design, material, colors, origin, vat_included, product_code, tag });
 
         // Xử lý biến thể
         const variationsData = variations.map((variation, index) => ({
@@ -68,6 +69,7 @@ export const handleCreateNewProduct = async (req, res) => {
             quantity,
             category,
             variations: variationsData,
+            tag,
             image, // Thêm ảnh chính vào dữ liệu
             productImages, // Thêm các hình ảnh bổ sung vào dữ liệu
             productDetails // Thêm chi tiết sản phẩm
@@ -133,9 +135,16 @@ export const deleteProduct = async (req, res) => {
     const { id } = req.params;
     try {
         const result = await services.deleteProduct(id);
-        return res.status(200).json(result);
+
+        if (result.err) {
+            // Nếu có lỗi trong quá trình xóa sản phẩm
+            return res.status(404).json({ error: result.mes });
+        }
+
+        // Trả về thông báo thành công
+        return res.status(200).json({ message: result.mes });
     } catch (error) {
         console.error('Error deleting product:', error);
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(500).json({ error: 'Internal server error' }); // Trả về lỗi server
     }
 };

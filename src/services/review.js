@@ -30,34 +30,29 @@ export const getReviewById = async (reviewId) => {
         const review = await db.Review.findByPk(reviewId, {
             include: ['user', 'product'] // Include liên kết User và Product
         });
-        if (!review) {
-            throw new Error('Review not found');
-        }
-        return review;
+
+        // Nếu không tìm thấy review, trả về null
+        return review || null;
     } catch (error) {
         console.error('Error fetching review by ID:', error);
-        throw error;
+        throw error; // Ném lỗi nếu có vấn đề khác
     }
 };
 
-export const getReviewByProductId = async (productId, userId) => {
+export const getReviewByProductId = async (productId) => {
     try {
         const reviews = await db.Review.findAll({
             where: {
                 product_id: productId,
             },
             include: ['user', 'product']
-
         });
 
-        if (reviews.length === 0) {
-            throw new Error('No reviews found for this product ID');
-        }
-
-        return reviews;
+        // Trả về danh sách đánh giá (có thể là mảng rỗng)
+        return reviews; // Nếu không có đánh giá, sẽ trả về mảng rỗng
     } catch (error) {
         console.error('Error getting reviews by product ID:', error);
-        throw error;
+        throw error; // Ném lỗi nếu có vấn đề khác
     }
 };
 

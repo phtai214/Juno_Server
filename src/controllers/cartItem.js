@@ -49,7 +49,7 @@ export const fetchCartItemsByCartId = async (req, res) => {
 
         // Kiểm tra nếu không tìm thấy cartItems
         if (!cartItems || cartItems.length === 0) {
-            return res.status(404).json({ error: 'No cart items found for this cart ID' });
+            return res.status(200).json({ message: 'No cart items found for this cart ID' });
         }
 
         return res.status(200).json(cartItems);

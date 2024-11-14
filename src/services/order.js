@@ -72,14 +72,11 @@ export const getOrderByUserId = async (userId) => {
             where: { user_id: userId }, // Lọc theo userId
         });
 
-        if (orders.length === 0) {
-            throw new Error('No orders found for this user ID');
-        }
-
-        return orders;
+        // Nếu không có đơn hàng, trả về một mảng rỗng
+        return orders; // Nếu orders.length === 0, sẽ trả về mảng rỗng
     } catch (error) {
         console.error('Error fetching orders by user ID:', error);
-        throw error;
+        throw error; // Ném lỗi nếu có vấn đề khác
     }
 };
 

@@ -2,7 +2,7 @@
 import db from '../models';
 const cloudinary = require('cloudinary').v2;
 
-export const createNewProduct = async ({ name, description, price, quantity, category, variations, image, productImages, productDetails }) => {
+export const createNewProduct = async ({ name, description, price, quantity, category, tag, variations, image, productImages, productDetails }) => {
     try {
         const generateRandomNumber = () => {
             const min = Math.pow(10, 5); // 100,000
@@ -35,6 +35,7 @@ export const createNewProduct = async ({ name, description, price, quantity, cat
             price,
             quantity,
             category,
+            tag,
             slug, // Sử dụng slug đã tạo
             image_url: uploadedMainImage ? uploadedMainImage.secure_url : null,
             additional_images: JSON.stringify(uploadedImages),
@@ -109,6 +110,10 @@ export const getAllProducts = async (page, limit = 10) => {
             include: [{
                 model: db.Variation, // Kết hợp với bảng Variation
                 required: false // Nếu bạn muốn lấy cả sản phẩm không có biến thể
+            },
+            {
+                model: db.ProductDetail,
+                required: false
             }]
         });
 
@@ -130,17 +135,26 @@ export const getAllProducts = async (page, limit = 10) => {
 
 export const getProductById = async (id) => {
     try {
-        const product = await db.Product.findByPk(id, {
-            include: [{
-                model: db.Variation, // Bao gồm các biến thể
-                required: false
-            }]
+        const product = await db.Product.findOne({
+            where: { id: id },
+            include: [
+                {
+                    model: db.Variation,
+                    required: false
+                },
+                {
+                    model: db.ProductDetail,
+                    required: false
+                }
+            ]
         });
         if (!product) {
+            console.error(`Product not found for id: ${id}`);
             throw new Error('Product not found');
         }
         return product;
     } catch (error) {
+        console.error('Error in getProductById:', error);
         throw error;
     }
 };
@@ -148,44 +162,99 @@ export const getProductById = async (id) => {
 export const getProductBySlug = async (slug) => {
     try {
         const product = await db.Product.findOne({
-            where: { slug }, // Sử dụng where để tìm theo slug
-            include: [{
-                model: db.Variation,
-                required: false
-            }]
+            where: { slug },
+            include: [
+                {
+                    model: db.Variation,
+                    required: false
+                },
+                {
+                    model: db.ProductDetail,
+                    required: false
+                }
+            ]
         });
         if (!product) {
-            console.error(`Product not found for slug: ${slug}`); // Log thêm thông tin
+            console.error(`Product not found for slug: ${slug}`);
             throw new Error('Product not found');
         }
         return product;
     } catch (error) {
-        console.error('Error in getProductBySlug:', error); // Log lỗi
+        console.error('Error in getProductBySlug:', error);
         throw error;
     }
 };
-export const updateProduct = async (id, updatedData) => {
+export const updateProduct = async (id, updatedData, fileData) => {
     try {
         const product = await db.Product.findByPk(id);
         if (!product) {
             throw new Error('Product not found');
         }
-        await product.update(updatedData);
+
+        // Update the product data based on provided updatedData
+        if (updatedData.name) {
+            product.name = updatedData.name;
+        }
+        if (updatedData.description) {
+            product.description = updatedData.description;
+        }
+        if (updatedData.price !== undefined) { // Check for undefined to allow 0
+            product.price = updatedData.price;
+        }
+        if (updatedData.quantity !== undefined) {
+            product.quantity = updatedData.quantity;
+        }
+        if (updatedData.category) {
+            product.category = updatedData.category;
+        }
+        if (updatedData.tags) {
+            product.tags = updatedData.tags; // Assuming tags could be an array
+        }
+        if (updatedData.productDetails) {
+            product.productDetails = { ...product.productDetails, ...updatedData.productDetails };
+        }
+        if (updatedData.variation) {
+            product.variation = { ...product.variation, ...updatedData.variation };
+        }
+
+        // Handle file data
+        if (fileData) {
+            product.image_url = fileData.path; // Update the image path if a new file was uploaded
+        }
+
+        // Save changes to the database
+        await product.save();
+
         return product;
     } catch (error) {
+        console.error('Error updating product:', error);
         throw error;
     }
 };
 
-export const deleteProduct = async (id) => {
+export const deleteProduct = async (productId) => {
     try {
-        const product = await db.Product.findByPk(id);
+        // Tìm sản phẩm để lấy thông tin chi tiết
+        const product = await db.Product.findOne({ where: { id: productId } });
         if (!product) {
-            throw new Error('Product not found');
+            return { err: 1, mes: 'Product not found.' };
         }
-        await product.destroy();
-        return { message: 'Product deleted successfully' };
+
+        // Xóa các biến thể liên quan đến sản phẩm
+        await db.Variation.destroy({ where: { productId } });
+
+        // Xóa chi tiết sản phẩm liên quan
+        const productDetail = await db.ProductDetail.findOne({ where: { productId } });
+        if (productDetail) {
+            await db.ProductDetail.destroy({ where: { productId } });
+        }
+
+        // Xóa sản phẩm
+        await db.Product.destroy({ where: { id: productId } });
+
+        return { err: 0, mes: 'Product and related details deleted successfully.' };
     } catch (error) {
+        console.log('Error deleting product:', error);
         throw error;
     }
 };

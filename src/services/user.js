@@ -1,7 +1,5 @@
 import db from "../models/index.js";
 import bcrypt from 'bcryptjs';
-
-
 export const createNewUser = async ({ name, email, password }) => {
     try {
         const generateRandomNumber = () => {
@@ -38,17 +36,68 @@ export const createNewUser = async ({ name, email, password }) => {
         throw error;
     }
 }
-
-
-export const getAllUser = async () => {
+export const createNewUserEmployee = async ({ name, email, password, position = '', status = 'active', role = '', permissions = '' }) => {
     try {
-        const allUsers = await db.User.findAll();
-        return allUsers
+        const generateRandomNumber = () => {
+            const min = Math.pow(10, 5); // 10^5 = 100,000
+            const max = Math.pow(10, 6) - 1; // 10^6 - 1 = 999,999
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+        const newId = `${generateRandomNumber()}`;
+
+        const existingUser = await db.User.findOne({ where: { email } });
+        if (existingUser) {
+            return {
+                err: 1,
+                mes: 'Email has been registered, please use another email',
+            };
+        }
+
+        const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(8));
+        const newUser = await db.User.create({
+            id: newId,
+            name,
+            email,
+            password: hashedPassword,
+            position, // Thêm position
+            status, // Thêm status
+            permissions,
+            role
+        });
+
+        return {
+            err: 0,
+            mes: 'User created successfully.',
+            user: newUser,
+        };
     } catch (error) {
-        console.log('check err >>>>', error);
+        console.log('check err >>>', error);
         throw error;
     }
 }
+
+
+export const getAllUser = async (page, limit = 10) => {
+    try {
+        const skip = (page - 1) * limit; // Tính toán vị trí bắt đầu
+        const users = await db.User.findAll({
+            offset: skip,
+            limit: limit,
+        });
+        const totalUsers = await db.User.count(); // Đếm tổng số người dùng
+        const totalPages = Math.ceil(totalUsers / limit); // Tính số trang
+
+        return {
+            users,
+            total: totalUsers,
+            total_pages: totalPages,
+            current_page: page
+        };
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        throw error;
+    }
+};
 
 export const getUserById = async (userId) => {
     try {
@@ -71,29 +120,30 @@ export const updateUser = async (userId, newData, fileData) => {
             throw new Error('Người dùng không tồn tại');
         }
 
-        // Cập nhật dữ liệu mới vào user
-        if (newData.name) {
-            user.name = newData.name;
-        }
-        if (newData.email) {
-            user.email = newData.email;
-        }
-        if (newData.address) {
-            user.address = newData.address;
-        }
-        if (newData.role) {
-            user.role = newData.role;
-        }
-        if (newData.phonenumber) {
-            user.phonenumber = newData.phonenumber;
-        }
-        if (newData.status) {
-            user.status = newData.status;
-        }
-        if (fileData !== undefined) {
+        // Cập nhật dữ liệu người dùng
+        user.name = newData.name || user.name;
+        user.email = newData.email || user.email;
+        user.address = newData.address || user.address;
+        user.role = newData.role || user.role;
+        user.position = newData.position || user.position; // Thêm cập nhật cho position
+        user.phonenumber = newData.phonenumber || user.phonenumber;
+        user.status = newData.status || user.status;
+
+        // Xử lý avatar
+        if (fileData) {
+            if (user.avatar) {
+                const publicId = user.avatar.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            }
             user.avatar = fileData.path;
         }
 
+        // Cập nhật quyền
+        const oldPermissions = user.permissions || [];
+        const newPermissions = newData.permissions || [];
+
+        // Xóa quyền không còn trong danh sách mới
+        user.permissions = newPermissions;
 
         // Lưu thay đổi vào cơ sở dữ liệu
         await user.save();
@@ -101,7 +151,6 @@ export const updateUser = async (userId, newData, fileData) => {
         return user;
     } catch (error) {
         console.log('check err >>>>', error);
-
         throw error;
     }
 }
@@ -148,17 +197,3 @@ export const getEmployeePermissions = async (userId) => {
     }
 };
 
-// Xóa một nhân viên
-export const deleteEmployee = async (userId) => {
-    try {
-        const user = await db.User.findOne({ where: { id: userId } });
-        if (!user) {
-            throw new Error('Người dùng không tồn tại');
-        }
-        await user.destroy();
-        return { message: 'Xóa người dùng thành công' };
-    } catch (error) {
-        console.error('Lỗi khi xóa người dùng:', error);
-        throw error;
-    }
-};

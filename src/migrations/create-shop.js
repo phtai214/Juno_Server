@@ -21,6 +21,14 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: false
             },
+            img: {
+                type: Sequelize.STRING, // Hoặc Sequelize.TEXT nếu cần
+                allowNull: true // Có thể để null nếu không bắt buộc
+            },
+            url_map: {
+                type: Sequelize.TEXT, // Hoặc Sequelize.TEXT nếu cần
+                allowNull: true // Có thể để null nếu không bắt buộc
+            },
             createdAt: {
                 allowNull: false,
                 type: Sequelize.DATE,

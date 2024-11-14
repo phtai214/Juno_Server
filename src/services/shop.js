@@ -1,10 +1,30 @@
-import db from "../models/index"
+import db from "../models/index";
+import cloudinary from "cloudinary"; // Đảm bảo bạn đã import Cloudinary
 
 // Create a new shop
-export const createShop = async (shopData) => {
+export const createShop = async ({ name, location, phone_number, img, url_map }) => {
     try {
-        const newShop = await db.Shop.create(shopData);
-        return newShop;
+        // Upload ảnh lên Cloudinary
+        let uploadedImageUrl = null;
+        if (img) {
+            const uploadedImage = await cloudinary.uploader.upload(img);
+            uploadedImageUrl = uploadedImage.secure_url;
+        }
+
+        // Tạo cửa hàng mới
+        const newShop = await db.Shop.create({
+            name,
+            location,
+            phone_number,
+            img: uploadedImageUrl, // Sử dụng URL ảnh đã tải lên
+            url_map
+        });
+
+        return {
+            err: 0,
+            mes: 'Shop created successfully.',
+            shop: newShop,
+        };
     } catch (error) {
         console.error('Error creating shop:', error);
         throw error;
@@ -43,14 +63,36 @@ export const updateShop = async (shopId, updatedData) => {
         if (!shop) {
             throw new Error('Shop not found');
         }
-        const updatedShop = await shop.update(updatedData);
-        return updatedShop;
+
+        // Xử lý tải ảnh mới lên Cloudinary nếu có
+        let uploadedImageUrl = shop.img; // Giữ nguyên ảnh cũ nếu không có ảnh mới
+        if (updatedData.img) {
+            const uploadedImage = await cloudinary.uploader.upload(updatedData.img);
+            uploadedImageUrl = uploadedImage.secure_url; // Cập nhật URL ảnh mới
+        }
+
+        // Cập nhật thông tin cửa hàng
+        const updatedShop = await shop.update({
+            name: updatedData.name,
+            location: updatedData.location,
+            phone_number: updatedData.phone_number,
+            img: uploadedImageUrl, // Sử dụng URL ảnh đã tải lên
+            url_map: updatedData.url_map
+        });
+
+        return {
+            err: 0,
+            mes: 'Shop updated successfully.',
+            shop: updatedShop,
+        };
     } catch (error) {
         console.error('Error updating shop:', error);
-        throw error;
+        return {
+            err: 1,
+            mes: 'Failed to update shop.',
+        };
     }
 };
-
 // Delete a shop
 export const deleteShop = async (shopId) => {
     try {

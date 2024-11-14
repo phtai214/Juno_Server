@@ -11,9 +11,8 @@ const port = process.env.PORT || 3001;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-
-    origin: ['http://localhost:3000', 'http://localhost:3002'],
-    credentials: true
+    origin: 'http://localhost:3000', // Thay đổi theo port frontend của bạn
+    credentials: true,
 }));
 
 initRouter(app);

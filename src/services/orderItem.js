@@ -23,9 +23,26 @@ export const getAllOrderItems = async (page, limit = 10) => {
         const orderItems = await db.OrderItem.findAll({
             offset: skip,
             limit: limit,
-            include: ['order', 'product'] // Include related models
+            include: [
+                {
+                    model: db.Order, // Bao gồm mô hình Order
+                    as: 'order', // Đảm bảo alias đúng
+                },
+                {
+                    model: db.Variation,
+                    as: 'variation',
+                    include: [
+                        {
+                            model: db.Product,
+                            as: 'product',
+                            attributes: ['id', 'name'] // Chỉ lấy id và name từ Product
+                        }
+                    ]
+                }
+            ] // Bao gồm Order, Variation và Product
         });
-        const totalOrderItems = await OrderItem.count();
+
+        const totalOrderItems = await db.OrderItem.count();
         const totalPages = Math.ceil(totalOrderItems / limit);
 
         return {
@@ -44,11 +61,29 @@ export const getAllOrderItems = async (page, limit = 10) => {
 export const getOrderItemById = async (orderItemId) => {
     try {
         const orderItem = await db.OrderItem.findByPk(orderItemId, {
-            include: ['order', 'product'] // Include related models
+            include: [
+                {
+                    model: db.Order, // Bao gồm mô hình Order
+                    as: 'order', // Đảm bảo alias đúng
+                },
+                {
+                    model: db.Variation,
+                    as: 'variation',
+                    include: [
+                        {
+                            model: db.Product,
+                            as: 'product',
+                            attributes: ['id', 'name'] // Chỉ lấy id và name từ Product
+                        }
+                    ]
+                }
+            ]
         });
+
         if (!orderItem) {
             throw new Error('Order item not found');
         }
+
         return orderItem;
     } catch (error) {
         console.error('Error fetching order item by ID:', error);
@@ -63,13 +98,17 @@ export const getOrderItemByOrderId = async (orderId) => {
             where: { order_id: orderId },
             include: [
                 {
+                    model: db.Order, // Bao gồm mô hình Order
+                    as: 'order', // Đảm bảo alias đúng
+                },
+                {
                     model: db.Variation,
                     as: 'variation',
                     include: [
                         {
                             model: db.Product,
                             as: 'product',
-                            attributes: ['id', 'name']
+                            attributes: ['id', 'name'] // Chỉ lấy id và name từ Product
                         }
                     ]
                 }
@@ -77,7 +116,7 @@ export const getOrderItemByOrderId = async (orderId) => {
         });
 
         if (orderItems.length === 0) {
-            throw new Error('No order items found for this order ID');
+            return { message: 'No order items found for this order ID' }; // Trả về thông báo thay vì ném lỗi
         }
 
         return orderItems;

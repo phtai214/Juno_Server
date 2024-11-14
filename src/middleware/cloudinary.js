@@ -38,4 +38,5 @@ const uploadCloud = multer({ storage }).fields([
     { name: 'variations[9][image]', maxCount: 1 },
 ]);
 
+
 export default uploadCloud;
