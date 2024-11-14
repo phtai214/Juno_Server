@@ -21,7 +21,7 @@ module.exports = {
                 type: Sequelize.STRING,
                 allowNull: false
             },
-            sizes: {
+            colors: {
                 type: Sequelize.STRING,
                 allowNull: false
             },

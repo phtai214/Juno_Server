@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "root",
-    "password": "",
+    "password": "Taidtry@204",
     "database": "juno",
     "host": "localhost",
     "dialect": "mysql",
@@ -10,14 +10,14 @@
   },
   "test": {
     "username": "root",
-    "password": "",
+    "password": "Taidtry@204",
     "database": "juno",
     "host": "localhost",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
-    "password": "",
+    "password": "Taidtry@204",
     "database": "juno",
     "host": "localhost",
     "dialect": "mysql"
