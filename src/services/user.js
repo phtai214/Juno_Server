@@ -59,9 +59,9 @@ export const createNewUserEmployee = async ({ name, email, password, position = 
             name,
             email,
             password: hashedPassword,
-            position, // Thêm position
-            status, // Thêm status
-            permissions,
+            position,
+            status,
+            permissions: permissions.join(','), // Lưu permissions dưới dạng JSON
             role
         });
 
